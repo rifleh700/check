@@ -1,6 +1,16 @@
 
 checkers = {}
 
+local string_match = string.match
+local string_format = string.format
+local string_gsub = string.gsub
+local string_find = string.find
+
+local table_concat = table.concat
+
+local debug_getinfo = debug.getinfo
+local debug_getlocal = debug.getlocal
+
 local function string_rep(s, n, sep)
 	if n == 1 then return s end
 	if n < 1 then return "" end
@@ -26,7 +36,7 @@ local function mta_type(value)
 end
 
 local default_checkers = {
-	["userdata:element:gui"] = function(v) return string.match(mta_type(v), "^userdata:element:gui%-") end
+	["userdata:element:gui"] = function(v) return string_match(mta_type(v), "^userdata:element:gui%-") end
 }
 
 local type_cuts = {
@@ -53,8 +63,8 @@ local function parse(pattern)
 		:gsub("([^,]+)%[(%d)%]", function(t, n) return string_rep(t, tonumber(n), ",") end)
 
 	result = split(result, ",")
-	for i, one in ipairs(result) do
-		result[i] = split(one, "|")
+	for i = 1, #result do
+		result[i] = split(result[i], "|")
 	end
 
 	cache[pattern] = result
@@ -64,8 +74,8 @@ end
 
 local function arg_invalid_msg(funcName, argNum, argName, msg)
 
-	msg = msg and string.format(" (%s)", msg) or ""
-	return string.format(
+	msg = msg and string_format(" (%s)", msg) or ""
+	return string_format(
 		"bad argument #%d '%s' to '%s'%s",
 		argNum, argName or "?", funcName or "?", msg
 	)
@@ -73,13 +83,13 @@ end
 
 local function expected_msg(variants, found)
 
-	for i, v in ipairs(variants) do
-		variants[i] = string.gsub(v, ".+:", "")
+	for i = 1, #variants do
+		variants[i] = string_gsub(variants[i], ".+:", "")
 	end
-	variants = table.concat(variants, "\\")
-	found = string.gsub(found, ".+:", "")
+	variants = table_concat(variants, "\\")
+	found = string_gsub(found, ".+:", "")
 
-	local msg = string.format("%s expected, got %s", variants, found)
+	local msg = string_format("%s expected, got %s", variants, found)
 	return msg
 end
 
@@ -87,14 +97,15 @@ function warn(msg, lvl)
 	check("s,?n")
 
 	lvl = (lvl or 1) + 1
-	local dbInfo = debug.getinfo(lvl, "S")
+	local dbInfo = debug_getinfo(lvl, "lS")
 
 	if dbInfo and lvl > 1 then
 		local src = dbInfo.short_src
-		local currentLine = debug.getinfo(lvl, "l").currentLine
-		msg = string.format(
+		local line = dbInfo.currentline
+
+		msg = string_format(
 			"%s:%s: %s",
-			src, currentLine, msg
+			src, line, msg
 		)
 	end
 
@@ -107,14 +118,16 @@ local function check_one(variants, value)
 	local mt = getmetatable(value)
 	local valueClass = mt and mt.__type
 	
-	for i, variant in ipairs(variants) do
+	for i = 1, #variants do
+
+		local variant = variants[i]
 
 		if variant == "any" then return true end
 		if variant == "notnil" and value ~= nil then return true end
 		if valueClass and valueClass == variant then return true end
 
 		if valueType == variant then return true end
-		if string.find(valueType, variant..":", 1, true) == 1 then return true end
+		if string_find(valueType, variant..":", 1, true) == 1 then return true end
 
 		local checker = default_checkers[variant]
 		if checker and checker(value) then return true end
@@ -129,14 +142,15 @@ end
 
 local function check_main(pattern)
 
-	for i, variants in ipairs(parse(pattern)) do
+	local parsed = parse(pattern)
+	for argNum = 1, #parsed do
 
-		local argName, value = debug.getlocal(3, i)
-		local success, descMsg = check_one(variants, value)
+		local argName, value = debug_getlocal(3, argNum)
+		local success, descMsg = check_one(parsed[argNum], value)
 		if not success then
 
-			local funcName = debug.getinfo(3, "n").name
-			local msg = arg_invalid_msg(funcName, i, argName, descMsg)
+			local funcName = debug_getinfo(3, "n").name
+			local msg = arg_invalid_msg(funcName, argNum, argName, descMsg)
 			return false, msg
 		end
 	end

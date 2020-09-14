@@ -6,8 +6,8 @@
 
 ### Functions
 
-- `void check(string patern)`
-  Check function arguments by pattern. It causes an error "bad argument" if the check failed.
+- `boolean check(string patern)`
+  Check function arguments by pattern. It causes an error "bad argument" if the check failed, otherwise returns 'true'.
   
 - `boolean scheck(string pattern)`
   Soft check function arguments by pattern. It causes a warning "bad argument" and returns 'false' if the check failed, otherwise returns 'true'.
@@ -188,7 +188,7 @@ function test()
     checkers.percent = function(v) return type(v) == "number" and v >= 0 and v <= 1 end
     iprint(f(0.1)) -- true
     iprint(f(1)) -- true
-    iprint(f(1.1)) -- error: bad argument #3 'num' to 'f' (percent expected, got number)
+    iprint(f(1.1)) -- error: bad argument #1 'num' to 'f' (percent expected, got number)
 end
 ```
 

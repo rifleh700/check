@@ -105,13 +105,13 @@ check("s,?b|n[2],t") -- #1 - string, #2 - nil or boolean or number(optional argu
   
 ```lua
 function f(c)
-  check("color")
-  return true
+    check("color")
+    return true
 end
 
 function test()
-  local red = setmetatable({255, 0, 0}, {__type = "color"})
-  iprint(f(red)) -- true
+    local red = setmetatable({255, 0, 0}, {__type = "color"})
+    iprint(f(red)) -- true
 end
 ```
 
@@ -163,14 +163,14 @@ end
   
 ```lua
 function f(str, num, data)
-	if not scheck("s,?n,t") then return false end
-	return true
+    if not scheck("s,?n,t") then return false end
+    return true
 end
 
 function test()
-	iprint(f("lol", 1, {})) -- true
-	iprint(f("lol", nil, {})) -- true
-	iprint(f("lol", nil, nil)) -- false, warning: bad argument #3 'data' to 'f' (table expected, got nil)
+    iprint(f("lol", 1, {})) -- true
+    iprint(f("lol", nil, {})) -- true
+    iprint(f("lol", nil, nil)) -- false, warning: bad argument #3 'data' to 'f' (table expected, got nil)
 end
 ```
   
@@ -180,15 +180,15 @@ end
   
 ```lua
 function f(num)
-	check("percent")
-	return true
+    check("percent")
+    return true
 end
 
 function test()
-	checkers.percent = function(v) return type(v) == "number" and v >= 0 and v <= 1 end
-	iprint(f(0.1)) -- true
-	iprint(f(1)) -- true
-	iprint(f(1.1)) -- error: bad argument #3 'num' to 'f' (percent expected, got number)
+    checkers.percent = function(v) return type(v) == "number" and v >= 0 and v <= 1 end
+    iprint(f(0.1)) -- true
+    iprint(f(1)) -- true
+    iprint(f(1.1)) -- error: bad argument #3 'num' to 'f' (percent expected, got number)
 end
 ```
 
@@ -198,11 +198,11 @@ end
   
 ```lua
 function f()
-	warn("something is wrong, but that's all right", 2)
-	return true
+    warn("something is wrong, but that's all right", 2)
+    return true
 end
 
 function test()
-	iprint(f()) -- true, warning: something is wrong, but that's all right
+    iprint(f()) -- true, warning: something is wrong, but that's all right
 end
 ```

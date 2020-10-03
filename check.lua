@@ -5,26 +5,21 @@ local string_match = string.match
 local string_format = string.format
 local string_gsub = string.gsub
 local string_find = string.find
-
 local table_concat = table.concat
-
 local debug_getinfo = debug.getinfo
 local debug_getlocal = debug.getlocal
 
+local _string_rep = string.rep
 local function string_rep(s, n, sep)
 	if n == 1 then return s end
 	if n < 1 then return "" end
 	if not sep then sep = "" end
 
-	local res = s
-	while n > 1 do
-		res = res..sep..s
-		n = n - 1
-	end
-	return res
+	return _string_rep(s..sep, n - 1)..s
 end
 
 local function mta_type(value)
+
 	local t = type(value)
 	if t ~= "userdata" then return t end
 

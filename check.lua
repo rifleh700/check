@@ -13,9 +13,8 @@ local _string_rep = string.rep
 local function string_rep(s, n, sep)
 	if n == 1 then return s end
 	if n < 1 then return "" end
-	if not sep then sep = "" end
 
-	return _string_rep(s..sep, n - 1)..s
+	return _string_rep(s..(sep or ""), n - 1)..s
 end
 
 local function mta_type(value)
@@ -28,6 +27,13 @@ local function mta_type(value)
 	if udt ~= "element" then return t..":"..udt end
 
 	return t..":"..udt..":"..getElementType(value)
+end
+
+local function is_subtype(sub, parent)
+	
+	return
+		sub == parent or
+		string_find(sub, parent..":", 1, true) == 1
 end
 
 local default_checkers = {
@@ -51,11 +57,11 @@ local function parse(pattern)
 	if cache[pattern] then return cache[pattern] end
 
 	local result = pattern
-		:gsub("(%a+)", type_cuts)
-		:gsub("(%?)(%a+)", "nil|%2")
-		:gsub("%?", "any")
-		:gsub("!", "notnil")
-		:gsub("([^,]+)%[(%d)%]", function(t, n) return string_rep(t, tonumber(n), ",") end)
+	result = string_gsub(result, "(%a+)", type_cuts)
+	result = string_gsub(result, "(%?)(%a+)", "nil|%2")
+	result = string_gsub(result, "%?", "any")
+	result = string_gsub(result, "!", "notnil")
+	result = string_gsub(result, "([^,]+)%[(%d)%]", function(t, n) return string_rep(t, tonumber(n), ",") end)
 
 	result = split(result, ",")
 	for i = 1, #result do
@@ -70,6 +76,7 @@ end
 local function arg_invalid_msg(funcName, argNum, argName, msg)
 
 	msg = msg and string_format(" (%s)", msg) or ""
+
 	return string_format(
 		"bad argument #%d '%s' to '%s'%s",
 		argNum, argName or "?", funcName or "?", msg
@@ -84,8 +91,10 @@ local function expected_msg(variants, found)
 	variants = table_concat(variants, "\\")
 	found = string_gsub(found, ".+:", "")
 
-	local msg = string_format("%s expected, got %s", variants, found)
-	return msg
+	return string_format(
+		"%s expected, got %s",
+		variants, found
+	)
 end
 
 function warn(msg, lvl)
@@ -121,8 +130,7 @@ local function check_one(variants, value)
 		if variant == "notnil" and value ~= nil then return true end
 		if valueClass and valueClass == variant then return true end
 
-		if valueType == variant then return true end
-		if string_find(valueType, variant..":", 1, true) == 1 then return true end
+		if is_subtype(valueType, variant) then return true end
 
 		local checker = default_checkers[variant]
 		if checker and checker(value) then return true end

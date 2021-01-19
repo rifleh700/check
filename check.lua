@@ -85,15 +85,16 @@ end
 
 local function expected_msg(variants, found)
 
+	local expected = {}
 	for i = 1, #variants do
-		variants[i] = string_gsub(variants[i], ".+:", "")
+		expected[i] = string_gsub(variants[i], ".+:", "")
 	end
-	variants = table_concat(variants, "\\")
+	expected = table_concat(expected, "\\")
 	found = string_gsub(found, ".+:", "")
 
 	return string_format(
 		"%s expected, got %s",
-		variants, found
+		expected, found
 	)
 end
 
